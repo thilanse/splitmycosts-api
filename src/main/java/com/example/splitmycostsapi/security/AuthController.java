@@ -1,5 +1,7 @@
 package com.example.splitmycostsapi.security;
 
+import com.example.splitmycostsapi.security.models.AuthRequest;
+import com.example.splitmycostsapi.security.models.AuthResponse;
 import com.example.splitmycostsapi.security.models.SignUpRequest;
 import com.example.splitmycostsapi.user.UserEntity;
 import com.example.splitmycostsapi.user.UserRepository;
@@ -18,8 +20,8 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @PostMapping("/api/signup")
-    public UserEntity signup(@RequestBody SignUpRequest request){
+    @PostMapping("/api/auth/register")
+    public UserEntity registerUser(@RequestBody SignUpRequest request){
 
         UserEntity user = new UserEntity(
                 request.getFirstName(),
@@ -29,6 +31,19 @@ public class AuthController {
                 passwordEncoder.encode(request.getPassword())
         );
 
+        // Todo: the response includes the user password as well.
+        //  Change this so that the password is not sent in the response.
+        //  Also, send as a ResponseEntity object.
         return userRepository.save(user);
+    }
+
+    @PostMapping("/api/auth/authenticate")
+    public AuthResponse authenticateUser(@RequestBody AuthRequest request){
+
+        String jwt = "token";
+
+        // Todo: implement user validation and token generation
+
+        return new AuthResponse(jwt);
     }
 }
