@@ -56,4 +56,9 @@ public class JWTUtil {
             return null;
         }
     }
+
+    public boolean validate(String token) {
+        // Todo
+        return false;
+    }
 }
