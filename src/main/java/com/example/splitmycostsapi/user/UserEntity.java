@@ -1,9 +1,10 @@
 package com.example.splitmycostsapi.user;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import com.example.splitmycostsapi.models.Event;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import javax.persistence.*;
+import java.util.List;
 
 @Entity
 public class UserEntity {
@@ -18,6 +19,10 @@ public class UserEntity {
     private String email;
     private String password;
     private String role;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
+    private List<Event> events;
 
     public UserEntity() {
     }
@@ -79,10 +84,18 @@ public class UserEntity {
     }
 
     public String getRole() {
-        return role;
+        return "USER";
     }
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public List<Event> getEvents() {
+        return events;
+    }
+
+    public void setEvents(List<Event> events) {
+        this.events = events;
     }
 }
