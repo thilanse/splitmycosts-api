@@ -6,6 +6,14 @@ import com.example.splitmycostsapi.security.models.SignUpRequest;
 import com.example.splitmycostsapi.user.UserEntity;
 import com.example.splitmycostsapi.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,13 +23,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JWTUtil jwtUtil;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("/api/auth/register")
-    public UserEntity registerUser(@RequestBody SignUpRequest request){
+    public UserEntity registerUser(@RequestBody SignUpRequest request) {
 
         UserEntity user = new UserEntity(
                 request.getFirstName(),
@@ -38,12 +52,23 @@ public class AuthController {
     }
 
     @PostMapping("/api/auth/authenticate")
-    public AuthResponse authenticateUser(@RequestBody AuthRequest request){
+    public ResponseEntity<AuthResponse> authenticateUser(@RequestBody AuthRequest request) {
 
-        String jwt = "token";
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(), request.getPassword()
+                    )
+            );
 
-        // Todo: implement user validation and token generation
+            User user = (User) authentication.getPrincipal();
 
-        return new AuthResponse(jwt);
+            String token = jwtUtil.generateToken(user);
+
+            return ResponseEntity.ok()
+                    .body(new AuthResponse(token));
+        } catch (BadCredentialsException ex) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
 }
