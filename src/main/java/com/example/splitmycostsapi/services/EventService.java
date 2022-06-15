@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class EventService {
@@ -32,5 +33,38 @@ public class EventService {
         Event event = new Event(eventName, user);
 
         return eventRepository.save(event);
+    }
+
+    public Event updateEvent(Long id, String eventName, String email) {
+
+        Event event = eventRepository.findById(id).orElseThrow();
+
+        if (!event.getOwner().getEmail().equals(email)){
+            // Todo: throw exception
+            return null;
+        }
+
+        event.setName(eventName);
+
+        return eventRepository.save(event);
+    }
+
+    public Optional<Event> getEventById(Long id) {
+
+        return eventRepository.findById(id);
+    }
+
+    public String deleteEvent(Long id, String email) {
+
+        Event event = eventRepository.findById(id).orElseThrow();
+
+        if (!event.getOwner().getEmail().equals(email)){
+            // Todo: throw exception
+            return "Failed";
+        }
+
+        eventRepository.delete(event);
+
+        return "Success";
     }
 }
