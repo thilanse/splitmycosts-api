@@ -7,6 +7,7 @@ import com.example.splitmycostsapi.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,10 +28,17 @@ public class EventService {
         return user.getEvents();
     }
 
-    public Event createEvent(String eventName, String email){
+    public Event createEvent(String eventName, List<Integer> contributorIds, String email){
         UserEntity user = userRepository.findByEmail(email).orElseThrow();
 
-        Event event = new Event(eventName, user);
+        List<UserEntity> contributors = new ArrayList<>();
+
+        for (Integer contributorId: contributorIds) {
+            UserEntity contributor = userRepository.findById(Long.valueOf(contributorId)).orElseThrow();
+            contributors.add(contributor);
+        }
+
+        Event event = new Event(eventName, contributors, user);
 
         return eventRepository.save(event);
     }
@@ -66,5 +74,15 @@ public class EventService {
         eventRepository.delete(event);
 
         return "Success";
+    }
+
+    public Event addContributor(Long eventId, Long contributorId) {
+        Event event = eventRepository.findById(eventId).orElseThrow();
+
+        UserEntity contributor = userRepository.findById(contributorId).orElseThrow();
+
+        event.addContributor(contributor);
+
+        return eventRepository.save(event);
     }
 }

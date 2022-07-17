@@ -5,10 +5,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-public class Event {
+public class Event implements Serializable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,8 +17,8 @@ public class Event {
 
     private String name;
 
-//    @ManyToMany
-//    private List<Contributor> contributors;
+    @ManyToMany
+    private List<UserEntity> contributors;
 
     @JsonIgnore
     @OneToMany(mappedBy = "event", fetch = FetchType.LAZY)
@@ -37,6 +38,13 @@ public class Event {
     public Event(String name, UserEntity owner) {
         this.name = name;
         this.owner = owner;
+        this.contributors = new ArrayList<>();
+    }
+
+    public Event(String name, List<UserEntity> contributors, UserEntity owner) {
+        this.name = name;
+        this.contributors = contributors;
+        this.owner = owner;
     }
 
     public Long getId() {
@@ -55,13 +63,13 @@ public class Event {
         this.name = name;
     }
 
-//    public List<Contributor> getContributors() {
-//        return contributors;
-//    }
-//
-//    public void setContributors(List<Contributor> contributors) {
-//        this.contributors = contributors;
-//    }
+    public List<UserEntity> getContributors() {
+        return contributors;
+    }
+
+    public void setContributors(List<UserEntity> contributors) {
+        this.contributors = contributors;
+    }
 
     public List<Expense> getExpenses() {
         return expenses;
@@ -77,5 +85,9 @@ public class Event {
 
     public void setOwner(UserEntity owner) {
         this.owner = owner;
+    }
+
+    public void addContributor(UserEntity contributor) {
+        this.contributors.add(contributor);
     }
 }
