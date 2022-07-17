@@ -43,18 +43,11 @@ public class EventService {
         return eventRepository.save(event);
     }
 
-    public Event updateEvent(Long id, String eventName, String email) {
+    public Event updateEvent(Event existingEvent, Event updatedEvent) {
 
-        Event event = eventRepository.findById(id).orElseThrow();
+        existingEvent.setName(updatedEvent.getName());
 
-        if (!event.getOwner().getEmail().equals(email)){
-            // Todo: throw exception
-            return null;
-        }
-
-        event.setName(eventName);
-
-        return eventRepository.save(event);
+        return eventRepository.save(existingEvent);
     }
 
     public Optional<Event> getEventById(Long id) {
@@ -62,14 +55,7 @@ public class EventService {
         return eventRepository.findById(id);
     }
 
-    public String deleteEvent(Long id, String email) {
-
-        Event event = eventRepository.findById(id).orElseThrow();
-
-        if (!event.getOwner().getEmail().equals(email)){
-            // Todo: throw exception
-            return "Failed";
-        }
+    public String deleteEvent(Event event) {
 
         eventRepository.delete(event);
 
@@ -84,5 +70,19 @@ public class EventService {
         event.addContributor(contributor);
 
         return eventRepository.save(event);
+    }
+
+    public Event removeContributor(Long eventId, Long contributorId) {
+
+        Event event = eventRepository.findById(eventId).orElseThrow();
+
+//        UserEntity contributor = userRepository.findById(contributorId).orElseThrow();
+
+        event.getContributors().removeIf(
+                e -> e.getId().equals(contributorId)
+        );
+
+        return eventRepository.save(event);
+
     }
 }

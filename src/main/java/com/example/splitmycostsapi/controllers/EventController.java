@@ -4,6 +4,8 @@ import com.example.splitmycostsapi.models.Event;
 import com.example.splitmycostsapi.models.requestmodels.CreateEventRequest;
 import com.example.splitmycostsapi.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -20,17 +22,19 @@ public class EventController {
     private EventService eventService;
 
     @GetMapping
-    public List<Event> getEvents(){
+    public ResponseEntity<List<Event>> getEvents(){
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         User user = (User) authentication.getPrincipal();
 
-        return eventService.getEventsForUser(user.getUsername());
+        List<Event> events = eventService.getEventsForUser(user.getUsername());
+
+        return new ResponseEntity<>(events, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public Event getEventById(@PathVariable Long id){
+    public ResponseEntity<?> getEventById(@PathVariable Long id){
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -39,42 +43,70 @@ public class EventController {
         Optional<Event> event = eventService.getEventById(id);
 
         if (event.isEmpty()){
-            return null;
+            return new ResponseEntity<>("Not found", HttpStatus.NOT_FOUND);
         }
 
         if (!event.get().getOwner().getEmail().equals(user.getUsername())){
-            return null;
+            return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
         }
 
-        return event.get();
+        return new ResponseEntity<>(event.get(), HttpStatus.OK);
     }
 
     @PostMapping
-    public Event createEvent(@RequestBody CreateEventRequest createEventRequest){
+    public ResponseEntity<?> createEvent(@RequestBody CreateEventRequest createEventRequest){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         User user = (User) authentication.getPrincipal();
 
-        return eventService.createEvent(
+        Event createdEvent =  eventService.createEvent(
                 createEventRequest.getName(), createEventRequest.getContributors(), user.getUsername()
         );
+
+        return new ResponseEntity<>(createdEvent, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public Event updateEvent(@PathVariable Long id, @RequestBody Event event){
+    public ResponseEntity<?> updateEvent(@PathVariable Long id, @RequestBody Event updatedEvent){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         User user = (User) authentication.getPrincipal();
 
-        return eventService.updateEvent(id, event.getName(), user.getUsername());
+        Optional<Event> event = eventService.getEventById(id);
+
+        if (event.isEmpty()){
+            return new ResponseEntity<>("Not found", HttpStatus.NOT_FOUND);
+        }
+
+        if (!event.get().getOwner().getEmail().equals(user.getUsername())){
+            return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+        }
+
+        return new ResponseEntity<>(
+                eventService.updateEvent(event.get(), updatedEvent),
+                HttpStatus.OK
+        );
     }
 
     @DeleteMapping("/{id}")
-    public String deleteEvent(@PathVariable Long id){
+    public ResponseEntity<?> deleteEvent(@PathVariable Long id){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         User user = (User) authentication.getPrincipal();
 
-        return eventService.deleteEvent(id, user.getUsername());
+        Optional<Event> event = eventService.getEventById(id);
+
+        if (event.isEmpty()){
+            return new ResponseEntity<>("Not found", HttpStatus.NOT_FOUND);
+        }
+
+        if (!event.get().getOwner().getEmail().equals(user.getUsername())){
+            return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+        }
+
+        return new ResponseEntity<>(
+                eventService.deleteEvent(event.get()),
+                HttpStatus.OK
+        );
     }
 }
