@@ -4,10 +4,11 @@ import com.example.splitmycostsapi.models.Event;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.List;
 
 @Entity
-public class UserEntity {
+public class UserEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,7 +18,10 @@ public class UserEntity {
     private String lastName;
     private String username;
     private String email;
+
+    @JsonIgnore
     private String password;
+
     private String role;
 
     @JsonIgnore

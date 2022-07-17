@@ -1,6 +1,7 @@
 package com.example.splitmycostsapi.controllers;
 
 import com.example.splitmycostsapi.models.Event;
+import com.example.splitmycostsapi.models.requestmodels.CreateEventRequest;
 import com.example.splitmycostsapi.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -49,12 +50,14 @@ public class EventController {
     }
 
     @PostMapping
-    public Event createEvent(@RequestBody Event event){
+    public Event createEvent(@RequestBody CreateEventRequest createEventRequest){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         User user = (User) authentication.getPrincipal();
 
-        return eventService.createEvent(event.getName(), user.getUsername());
+        return eventService.createEvent(
+                createEventRequest.getName(), createEventRequest.getContributors(), user.getUsername()
+        );
     }
 
     @PutMapping("/{id}")
