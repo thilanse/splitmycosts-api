@@ -1,6 +1,10 @@
 package com.example.splitmycostsapi.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -12,9 +16,12 @@ public class Expense {
 
     private String name;
 
+    private BigDecimal totalCost;
+
     @OneToMany(mappedBy = "expense")
     private List<Contribution> contributions;
 
+    @JsonIgnore
     @ManyToOne
     private Event event;
 
@@ -24,6 +31,25 @@ public class Expense {
     public Expense(String name, Event event) {
         this.name = name;
         this.event = event;
+        this.totalCost = new BigDecimal(0);
+        this.contributions = new ArrayList<>();
+    }
+
+    public void calculateTotalCost(){
+        this.totalCost =
+                this.contributions.stream()
+                        .map(Contribution::getAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public void addContribution(Contribution contribution){
+        this.contributions.add(contribution);
+        this.totalCost = this.totalCost.add(contribution.getAmount());
+    }
+
+    public void removeContribution(Contribution contribution){
+        this.contributions.removeIf(c -> c.getId().equals(contribution.getId()));
+        this.totalCost = this.totalCost.subtract(contribution.getAmount());
     }
 
     public Long getId() {

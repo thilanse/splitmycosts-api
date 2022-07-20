@@ -1,6 +1,7 @@
 package com.example.splitmycostsapi.models;
 
 import com.example.splitmycostsapi.user.UserEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -17,6 +18,7 @@ public class Contribution {
     @OneToOne
     private UserEntity contributor;
 
+    @JsonIgnore
     @ManyToOne
     private Expense expense;
 
